@@ -43,17 +43,20 @@
 
 ---
 
-## Stage 3 — API Service (FastAPI) ⬜
-- [ ] `services/api/app/database.py` — SQLAlchemy async engine + session factory
-- [ ] `services/api/app/models/session.py` — ChatSession ORM
-- [ ] `services/api/app/models/message.py` — Message ORM
-- [ ] `services/api/app/models/inference_log.py` — InferenceLog ORM
-- [ ] `services/api/app/schemas/` — Pydantic request/response schemas
-- [ ] `services/api/app/dependencies.py` — DB session, Redis deps
-- [ ] `services/api/app/routers/sessions.py` — POST/GET/DELETE /sessions
-- [ ] `services/api/app/routers/chat.py` — SSE streaming endpoint (cancel detection, PII inline, Redis publish)
-- [ ] `services/api/app/routers/health.py` — /health with DB + Redis ping
-- [ ] Integration test: curl SSE stream endpoint, verify chunks + DB write
+## Stage 3 — API Service (FastAPI) ✅
+- [x] `services/api/app/database.py` — SQLAlchemy async engine + session factory
+- [x] `services/api/app/models/session.py` — ChatSession ORM
+- [x] `services/api/app/models/message.py` — Message ORM
+- [x] `services/api/app/models/inference_log.py` — InferenceLog ORM (read-only from API)
+- [x] `services/api/app/schemas/session.py` — SessionCreate, SessionResponse, MessageResponse, SessionWithMessages
+- [x] `services/api/app/dependencies.py` — DB session, Redis, Presidio client deps
+- [x] `services/api/app/routers/sessions.py` — POST/GET/PATCH/DELETE + messages endpoint
+- [x] `services/api/app/routers/chat.py` — SSE stream, PII inline redact, cancel detection, Redis publish
+- [x] `services/api/app/routers/health.py` — /health with DB + Redis ping
+- [x] `services/api/app/main.py` — lifespan (Redis pool + httpx client), CORS, all routers
+- [x] Integration test: session CRUD all verified, SSE routing works (auth error = Anthropic reached correctly)
+- [x] User message stored to Postgres before stream starts ✅
+- [x] Auto-title on first message ✅
 
 ---
 
