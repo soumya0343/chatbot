@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
-echo "Running database migrations..."
-alembic upgrade head
-echo "Migrations complete. Starting server..."
+if [ -n "$SYNC_DATABASE_URL" ]; then
+    echo "Running database migrations..."
+    alembic upgrade head
+    echo "Migrations complete."
+fi
 exec "$@"
