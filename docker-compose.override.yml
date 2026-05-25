@@ -1,0 +1,37 @@
+# Dev overrides: hot reload for all services, pgAdmin on --profile debug
+services:
+
+  api:
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./services/api:/workspace/services/api
+      - ./packages/llm-sdk:/workspace/packages/llm-sdk
+    environment:
+      ENVIRONMENT: development
+
+  ingestion:
+    volumes:
+      - ./services/ingestion:/workspace/services/ingestion
+      - ./packages/llm-sdk:/workspace/packages/llm-sdk
+    environment:
+      ENVIRONMENT: development
+
+  frontend:
+    command: npm run dev
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    profiles:
+      - debug
