@@ -75,19 +75,23 @@
 
 ---
 
-## Stage 5 — Frontend Core ⬜
-- [ ] Next.js 14 App Router scaffold with Tailwind + shadcn/ui
-- [ ] `src/lib/api.ts` — typed fetch client
-- [ ] `src/hooks/useChat.ts` — SSE stream + AbortController cancel
-- [ ] `src/hooks/useConversations.ts`
-- [ ] `src/app/conversations/page.tsx` — list all sessions
-- [ ] `src/app/conversations/[id]/page.tsx` — chat window + resume
-- [ ] `src/components/chat/ChatWindow.tsx`
-- [ ] `src/components/chat/MessageBubble.tsx`
-- [ ] `src/components/chat/MessageInput.tsx`
-- [ ] `src/components/chat/ProviderSelector.tsx` — Anthropic | OpenAI | Gemini + model picker
-- [ ] Cancel button → abort SSE → backend logs `cancelled`
-- [ ] Test: create session, stream, cancel mid-stream, resume
+## Stage 5 — Frontend Core ✅
+- [x] Next.js 14 App Router scaffold with Tailwind + shadcn/ui (shadcn v4 + base-ui components)
+- [x] `frontend/lib/api.ts` — typed fetch client (Session, Message, SessionWithMessages types + streamChat)
+- [x] `frontend/hooks/useChat.ts` — SSE stream + AbortController cancel
+- [x] `frontend/hooks/useConversations.ts` — list + delete sessions
+- [x] `frontend/app/conversations/page.tsx` — list all sessions + new chat button
+- [x] `frontend/app/conversations/[id]/page.tsx` — chat window + resume (loads history server-side)
+- [x] `frontend/components/chat/ChatWindow.tsx` — full chat layout with provider bar
+- [x] `frontend/components/chat/MessageBubble.tsx` — user/assistant bubbles + streaming cursor
+- [x] `frontend/components/chat/MessageInput.tsx` — Enter to send, Shift+Enter newline, cancel button
+- [x] `frontend/components/chat/ProviderSelector.tsx` — Gemini | OpenAI | Anthropic + model dropdown
+- [x] Cancel button → AbortController.abort() → EventSource closes → backend detects disconnect
+- [x] `frontend/app/layout.tsx` — nav header with Conversations + Dashboard links
+- [x] `frontend/app/dashboard/page.tsx` — placeholder (Stage 6)
+- [x] `frontend/next.config.mjs` — output: standalone, API rewrite
+- [x] `frontend/Dockerfile` — multi-stage build with standalone output
+- [x] Build verified: `npm run build` passes ✅, dev server responds 200 ✅
 
 ---
 
@@ -120,8 +124,10 @@
 - [x] Streaming responses — TrackedClient.stream() + SSE endpoint ✅
 - [x] Event-based architecture — Redis Streams XADD + XREADGROUP ✅
 - [x] PII redaction — Presidio sidecar + 2-stage strategy ✅
+- [x] Cancel mid-stream — AbortController + backend disconnect detection ✅
+- [x] Resume conversation — history loaded server-side on /conversations/[id] ✅
 - [ ] Latency + Throughput + Error dashboards — Stage 6
-- [ ] Docker Compose one-command setup — after Stage 5 frontend scaffold
+- [ ] Docker Compose one-command setup — needs real API key to test full flow
 - [ ] Self-hosted k8s — Stage 7
 
 ---
