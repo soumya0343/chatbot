@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import chat, health, sessions
+from .routers import chat, dashboard, health, sessions
 
 
 @asynccontextmanager
@@ -42,3 +42,4 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(sessions.router)
 app.include_router(chat.router)
+app.include_router(dashboard.router)

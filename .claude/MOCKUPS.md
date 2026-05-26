@@ -21,7 +21,7 @@
 - Next.js app built and dev server verified (200 on `/conversations`, `/conversations/[id]`, `/dashboard`) ✅
 - `streamChat` uses `EventSource` — browser-native SSE, no polyfill needed
 - Cancel flow: `AbortController.abort()` → closes EventSource → backend `request.is_disconnected()` → logs `cancelled`
-- **Remaining mockup:** `/dashboard` page is placeholder text — Stage 6 builds charts
+- `/dashboard` fully built — Recharts LatencyChart, ThroughputChart, ErrorRateChart, MetricCards, 30s polling ✅
 - **Fix needed:** Add real `GOOGLE_API_KEY` to `.env`, test full stream → cancel → resume flow in browser
 
 ---

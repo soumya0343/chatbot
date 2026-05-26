@@ -95,14 +95,21 @@
 
 ---
 
-## Stage 6 — Analytics Dashboard ⬜
-- [ ] `services/api/app/routers/dashboard.py` — GET /dashboard/stats
-- [ ] `src/app/dashboard/page.tsx`
-- [ ] `src/hooks/useDashboard.ts` — 30s polling
-- [ ] `src/components/dashboard/LatencyChart.tsx` — Recharts LineChart p50/p95/p99
-- [ ] `src/components/dashboard/ThroughputChart.tsx` — BarChart requests/hour
-- [ ] `src/components/dashboard/ErrorRateChart.tsx` — AreaChart error %
-- [ ] `src/components/dashboard/MetricCard.tsx` — total requests, avg latency, tokens, errors
+## Stage 6 — Analytics Dashboard ✅
+- [x] `services/api/app/routers/dashboard.py` — GET /dashboard/stats?range=&provider=
+  - Queries `dashboard_hourly_stats` materialized view for timeseries
+  - Live aggregate totals from `inference_logs` (includes current partial hour)
+  - Per-provider breakdown table
+- [x] `frontend/app/dashboard/page.tsx` + `DashboardClient.tsx` — "use client" split
+- [x] `frontend/hooks/useDashboard.ts` — 30s polling with setInterval
+- [x] `frontend/components/dashboard/LatencyChart.tsx` — Recharts LineChart p50/p95/p99
+- [x] `frontend/components/dashboard/ThroughputChart.tsx` — stacked BarChart per provider
+- [x] `frontend/components/dashboard/ErrorRateChart.tsx` — AreaChart error %
+- [x] `frontend/components/dashboard/MetricCard.tsx` — total requests, error rate, avg latency, tokens
+- [x] Range selector: 1h / 6h / 24h / 7d / 30d buttons
+- [x] Manual refresh button
+- [x] Per-provider breakdown table
+- [x] Build verified: `npm run build` passes ✅, /dashboard responds 200 ✅
 
 ---
 
@@ -126,7 +133,7 @@
 - [x] PII redaction — Presidio sidecar + 2-stage strategy ✅
 - [x] Cancel mid-stream — AbortController + backend disconnect detection ✅
 - [x] Resume conversation — history loaded server-side on /conversations/[id] ✅
-- [ ] Latency + Throughput + Error dashboards — Stage 6
+- [x] Latency + Throughput + Error dashboards ✅
 - [ ] Docker Compose one-command setup — needs real API key to test full flow
 - [ ] Self-hosted k8s — Stage 7
 
