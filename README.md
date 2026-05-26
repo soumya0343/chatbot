@@ -1,0 +1,241 @@
+# LLM Inference Logging & Chatbot
+
+Production-grade multi-provider LLM chatbot with full inference observability: streaming responses, event-based log ingestion, PII redaction, and real-time analytics dashboards.
+
+## Features
+
+- **Multi-provider** — Gemini, OpenAI, Anthropic switchable per conversation
+- **Streaming** — true SSE streaming with TTFT measurement and mid-stream cancel
+- **Event-based ingestion** — Redis Streams decouple the hot path from logging
+- **PII redaction** — two-stage: inline before DB write (user messages) + async in ingestion (previews)
+- **Analytics** — materialized view refreshed after every batch; p50/p95/p99 latency, throughput, error rate charts
+- **Resume conversations** — full message history reloaded on reconnect
+- **Kubernetes-ready** — 19 manifests, HPA on API service, ingestion scales horizontally via consumer groups
+
+## Architecture
+
+```
+Browser
+  │  SSE chunks (text/event-stream)
+  ▼
+Next.js 14 (port 3000)
+  │  fetch + EventSource
+  ▼
+FastAPI API (port 8000)
+  ├── Presidio sidecar ──► PII-redact user message (inline, ~30ms)
+  ├── PostgreSQL ──────────► store user message + assistant response
+  ├── llm-sdk TrackedClient ► stream from provider
+  │     └── providers: Anthropic / OpenAI / Gemini
+  └── Redis XADD ──────────► fire-and-forget InferenceEvent
+
+Redis Streams ("llm-inference-logs")
+  │  XREADGROUP, batch=50
+  ▼
+Ingestion Service (port 8001)
+  ├── Presidio ────────────► PII-redact input/output previews
+  ├── PostgreSQL ──────────► INSERT inference_logs
+  ├── PostgreSQL ──────────► UPDATE session total_tokens
+  └── PostgreSQL ──────────► REFRESH MATERIALIZED VIEW CONCURRENTLY
+```
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14 App Router, Tailwind CSS, shadcn/ui, Recharts |
+| API | FastAPI, SQLAlchemy async (asyncpg), Alembic |
+| SDK | Internal `llm-sdk` package — provider abstraction + Redis emitter |
+| Ingestion | FastAPI worker, Redis Streams consumer group |
+| PII | Presidio (presidio-analyzer + presidio-anonymizer + spaCy en_core_web_lg) |
+| Database | PostgreSQL 16 |
+| Cache / Queue | Redis 7 (Streams for event bus, AOF persistence) |
+| Infra | Docker Compose, Kubernetes (kustomize) |
+
+## Quick Start
+
+```bash
+# 1. Clone and configure
+cp .env.example .env
+# Edit .env — add GOOGLE_API_KEY (or OPENAI_API_KEY / ANTHROPIC_API_KEY)
+
+# 2. Start everything
+docker compose up --build
+
+# 3. Open
+open http://localhost:3000
+```
+
+Services started: `postgres` (5432), `redis` (6380), `presidio` (8080), `api` (8000), `ingestion` (8001), `frontend` (3000).
+
+> Presidio takes ~30s on first start (downloads spaCy model).
+
+### Dev mode (hot reload + pgAdmin)
+
+```bash
+docker compose --profile debug up --build
+# pgAdmin at http://localhost:5050 (admin@admin.com / admin)
+```
+
+## End-to-End Verification
+
+```bash
+# Create session
+SESSION_ID=$(curl -s -X POST http://localhost:8000/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"provider":"gemini","model":"gemini-2.5-flash"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+# Stream a message
+curl -N "http://localhost:8000/sessions/${SESSION_ID}/stream?user_message=Hello&provider=gemini&model=gemini-2.5-flash"
+
+# Verify inference log written
+docker compose exec postgres psql -U chatbot -d chatbot \
+  -c "SELECT provider, status, latency_ms, input_tokens, output_tokens FROM inference_logs ORDER BY created_at DESC LIMIT 1;"
+
+# Check PII redaction
+docker compose exec postgres psql -U chatbot -d chatbot \
+  -c "SELECT content FROM messages WHERE role='user' ORDER BY created_at DESC LIMIT 1;"
+
+# Check dashboard view
+docker compose exec postgres psql -U chatbot -d chatbot \
+  -c "SELECT * FROM dashboard_hourly_stats ORDER BY hour_bucket DESC LIMIT 3;"
+```
+
+## Project Structure
+
+```
+chatbot/
+├── docker-compose.yml               # six services
+├── docker-compose.override.yml      # dev hot-reload + pgAdmin
+├── k8s/                             # Kubernetes manifests (kustomize)
+│   ├── kustomization.yaml           # kubectl apply -k k8s/
+│   ├── postgres/                    # StatefulSet, PVC, Service, Secret
+│   ├── redis/                       # Deployment, Service, ConfigMap
+│   ├── presidio/                    # Deployment, Service
+│   ├── api/                         # Deployment, Service, HPA (min=1 max=5 cpu=70%)
+│   ├── ingestion/                   # Deployment replicas=2
+│   └── frontend/                    # Deployment, Service, Ingress
+│
+├── packages/llm-sdk/                # internal Python package
+│   └── llm_sdk/
+│       ├── client.py                # TrackedClient — orchestrates stream + emit
+│       ├── providers/               # base.py, anthropic.py, openai.py, gemini.py
+│       ├── models.py                # InferenceEvent (Pydantic v2)
+│       ├── emitter.py               # Redis XADD, never raises
+│       ├── streaming.py             # StreamingTracker — TTFT measurement
+│       └── pii.py                   # fast 500-char truncation before emit
+│
+├── services/
+│   ├── api/                         # FastAPI — sessions CRUD + SSE chat
+│   │   └── app/
+│   │       ├── routers/chat.py      # SSE endpoint (most complex)
+│   │       ├── routers/sessions.py  # POST/GET/PATCH/DELETE
+│   │       ├── routers/dashboard.py # GET /dashboard/stats
+│   │       └── alembic/             # migrations
+│   │
+│   ├── ingestion/                   # Redis consumer → Postgres writer
+│   │   └── app/
+│   │       ├── consumer.py          # XREADGROUP + XAUTOCLAIM PEL claim
+│   │       ├── writer.py            # bulk INSERT + REFRESH CONCURRENTLY
+│   │       └── pii_client.py        # async HTTP → Presidio
+│   │
+│   └── presidio/                    # PII sidecar
+│       └── app.py                   # POST /analyze_and_anonymize
+│
+└── frontend/
+    ├── app/
+    │   ├── conversations/           # list + chat window
+    │   └── dashboard/               # analytics charts
+    ├── components/
+    │   ├── chat/                    # ChatWindow, MessageBubble, MessageInput, ProviderSelector
+    │   └── dashboard/               # LatencyChart, ThroughputChart, ErrorRateChart, MetricCard
+    └── hooks/
+        ├── useChat.ts               # SSE stream + AbortController cancel
+        ├── useConversations.ts
+        └── useDashboard.ts          # 30s polling
+```
+
+## Database Schema
+
+### `chat_sessions`
+Tracks provider, model, status, message_count, total_tokens. Auto-titled from first user message (first 60 chars).
+
+### `messages`
+Stores PII-redacted content (cleaned inline before write). Ordered by `sequence_num`. Last 20 loaded as LLM context window.
+
+### `inference_logs`
+One row per LLM call. Written by ingestion service (never by API hot path). Key fields:
+- `latency_ms` / `time_to_first_token_ms` — measured in SDK via `StreamingTracker`
+- `status` — `success | error | cancelled | timeout`
+- `input_preview` / `output_preview` — 500 chars, PII-redacted by Presidio
+- `total_tokens` — generated column (`input_tokens + output_tokens`)
+
+### `dashboard_hourly_stats` (materialized view)
+Pre-aggregated p50/p95/p99 latency, request counts, error counts, token sums per `(hour_bucket, provider, model)`. Refreshed with `REFRESH CONCURRENTLY` after every ingestion batch — requires the unique index on `(hour_bucket, provider, model)` to avoid table lock.
+
+## PII Redaction Strategy
+
+| Stage | Where | What | Latency impact |
+|---|---|---|---|
+| Inline | API service | User message content before Postgres write | ~30ms, synchronous |
+| Async | Ingestion service | `input_preview`, `output_preview`, `error_message` | Zero user impact |
+| Truncation | SDK | 500-char cut before Redis publish | <1ms |
+
+Entities detected: `EMAIL_ADDRESS`, `PHONE_NUMBER`, `PERSON`, `US_SSN`, `CREDIT_CARD`, `IP_ADDRESS`, `LOCATION`, `URL`, `IBAN_CODE`. Replaced with `<REDACTED:ENTITY_TYPE>`.
+
+## Key Design Decisions
+
+### Redis Streams over a message queue service
+Same at-least-once consumer group semantics as Kafka, zero extra infra. `XAUTOCLAIM` reclaims messages pending >60s from crashed consumers — provides exactly-once write semantics on restart without a separate dead-letter queue.
+
+### Separate ingestion service
+The SSE hot path (user-facing) never blocks on Presidio HTTP calls or bulk Postgres writes. Ingestion runs fully async; a slow Presidio response does not add latency to the stream.
+
+### Materialized view for dashboard
+Sub-millisecond dashboard reads even with millions of inference_logs rows. 30s staleness is acceptable for an observability dashboard. `REFRESH CONCURRENTLY` avoids a table lock — requires the unique index.
+
+### Two-stage PII redaction
+User message must be clean before hitting Postgres (compliance). Assistant output and previews can tolerate async cleaning — no urgency, zero user impact. SDK only truncates (never semantic redaction) because the hot path cannot afford a Presidio round-trip per token.
+
+### UUID v4 primary keys
+Simpler than ULID. Range queries use `created_at` indexes rather than the PK, so ULID's sortable property provides no benefit here.
+
+## Kubernetes
+
+```bash
+# Validate manifests
+kubectl kustomize k8s/
+
+# Deploy to cluster
+kubectl apply -k k8s/
+
+# Watch rollout
+kubectl get pods -n chatbot -w
+```
+
+Before deploying, fill in real values:
+- `k8s/postgres/secret.yaml` — `POSTGRES_PASSWORD`
+- `k8s/api/secret.yaml` — LLM API keys
+
+Build and push images:
+```bash
+docker build -t your-registry/chatbot-api:latest -f services/api/Dockerfile .
+docker build -t your-registry/chatbot-ingestion:latest -f services/ingestion/Dockerfile .
+docker build -t your-registry/chatbot-presidio:latest -f services/presidio/Dockerfile .
+docker build -t your-registry/chatbot-frontend:latest -f frontend/Dockerfile .
+```
+
+The API HPA scales 1→5 replicas at 70% CPU. Ingestion runs 2 replicas — Redis consumer groups distribute stream messages across both pods automatically.
+
+The Ingress requires nginx-ingress-controller. SSE buffering is disabled (`proxy-buffering: off`, `chunked_transfer_encoding on`) so stream chunks reach the browser immediately.
+
+## Future Improvements
+
+- **Auth** — no authentication currently; add JWT or session-cookie auth before any public deployment
+- **Rate limiting** — per-user token budget to prevent runaway API spend
+- **Model cost tracking** — store per-model $/token rates in config, compute `cost_usd` in ingestion
+- **Retry with backoff** — SDK currently propagates provider errors directly; add exponential backoff for transient 429/503
+- **Webhook / alert** — notify on error rate spike (>5% over 5min window) via PagerDuty or Slack
+- **ULID primary keys** — if log volume grows large enough that range-scan on `created_at` becomes a bottleneck
+- **Redis persistence** — current k8s Redis uses `emptyDir`; add PVC for durability in production
+- **Multi-region** — ingestion service is stateless; Redis Streams can fan out to region-local consumers

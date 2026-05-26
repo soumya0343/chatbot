@@ -150,17 +150,17 @@
 
 ---
 
-## Mockups / Placeholders ⚠️
+## Mockups / Placeholders
 > Full list in `.claude/MOCKUPS.md`
-- [ ] Real `GOOGLE_API_KEY` in `.env` → test live Gemini stream end-to-end
-- [ ] Real `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` if needed
-- [ ] Stage 3 SSE not verified with real LLM response
-- [ ] Stage 4 tested with synthetic data only
+- [x] Real `GOOGLE_API_KEY` added → full pipeline verified end-to-end ✅
+- [x] Stage 3 SSE verified with real Gemini response ✅
+- [x] Stage 4 verified with real SDK flow (not synthetic) ✅
+- [x] PII redaction verified on real message ✅
+- [ ] `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` — still placeholders (not needed)
 
 ---
 
 ## Final Deliverables
-- [ ] `README.md` — setup, architecture, schema decisions, tradeoffs, future improvements
-- [ ] Architecture notes doc
-- [ ] Demo (hosted link / screenshots / Loom)
+- [x] `README.md` — quick start, architecture diagram, schema decisions, PII strategy, k8s deploy, tradeoffs, future improvements ✅
+- [ ] Demo (screenshots / Loom) — needs real API key
 - [ ] GitHub repo public + pushed

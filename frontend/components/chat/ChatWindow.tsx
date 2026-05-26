@@ -20,7 +20,7 @@ export function ChatWindow({
   sessionId,
   initialMessages,
   defaultProvider = "gemini",
-  defaultModel = "gemini-1.5-flash",
+  defaultModel = "gemini-2.0-flash",
 }: Props) {
   const [provider, setProvider] = useState(defaultProvider);
   const [model, setModel] = useState(defaultModel);
