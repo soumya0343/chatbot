@@ -48,6 +48,18 @@
 
 ---
 
+## Kubernetes (manifests only — not cluster-tested)
+- `kubectl kustomize k8s/` renders all 19 resources cleanly ✅
+- No live cluster available for `kubectl apply` test
+- **Fix before deploy:**
+  1. Fill real passwords in `k8s/postgres/secret.yaml`
+  2. Fill real API keys in `k8s/api/secret.yaml`
+  3. Build + push images: `docker build -t chatbot/api:latest -f services/api/Dockerfile .` etc.
+  4. `kubectl apply -k k8s/`
+  5. Ingresss requires nginx-ingress-controller installed on cluster
+
+---
+
 ## Things Verified as Real (no mockups)
 - Postgres schema + migrations ✅
 - Redis Streams consumer group + XAUTOCLAIM ✅
@@ -55,3 +67,5 @@
 - Session CRUD endpoints ✅
 - Ingestion pipeline (Redis → Postgres flow) ✅
 - `dashboard_hourly_stats` REFRESH CONCURRENTLY ✅
+- Next.js build passes, `/conversations` + `/dashboard` serve 200 ✅
+- `kubectl kustomize k8s/` — all 19 k8s resources render without errors ✅

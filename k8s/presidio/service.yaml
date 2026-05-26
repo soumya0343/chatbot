@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: presidio
+  namespace: chatbot
+spec:
+  selector:
+    app: presidio
+  ports:
+    - port: 8080
+      targetPort: 8080

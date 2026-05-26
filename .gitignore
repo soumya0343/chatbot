@@ -46,3 +46,18 @@ logs/
 # Keys / secrets
 *.pem
 *.key
+
+# Python build artifacts
+*.so
+.eggs/
+htmlcov/
+.coverage
+coverage.xml
+
+# Next.js standalone output
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+
+# Alembic
+services/api/alembic/versions/__pycache__/

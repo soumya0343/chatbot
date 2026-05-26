@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: chatbot
+data:
+  redis.conf: |
+    appendonly yes
+    maxmemory 512mb
+    maxmemory-policy allkeys-lru
+    save 60 1000
+    save 300 100
+    save 900 1
