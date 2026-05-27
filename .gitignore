@@ -47,6 +47,12 @@ logs/
 *.pem
 *.key
 
+# K8s secrets — commit templates only, fill values locally before deploy
+# (templates with empty stringData are safe; filled copies must not be pushed)
+# Uncomment to ignore entirely if you prefer:
+# k8s/postgres/secret.yaml
+# k8s/api/secret.yaml
+
 # Python build artifacts
 *.so
 .eggs/
