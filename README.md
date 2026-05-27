@@ -227,6 +227,8 @@ docker build -t your-registry/chatbot-frontend:latest -f frontend/Dockerfile .
 
 The API HPA scales 1→5 replicas at 70% CPU. Ingestion runs 2 replicas — Redis consumer groups distribute stream messages across both pods automatically.
 
+The API deployment uses a `startupProbe` (120 attempts × 5s = 10 min window) so Alembic migrations can complete before liveness/readiness probes begin. Without this, k8s kills the container mid-migration causing a restart loop.
+
 The Ingress requires nginx-ingress-controller. SSE buffering is disabled (`proxy-buffering: off`, `chunked_transfer_encoding on`) so stream chunks reach the browser immediately.
 
 ## Future Improvements

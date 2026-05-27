@@ -23,15 +23,13 @@ Real end-to-end test with `gemini-2.5-flash`:
 
 ---
 
-## Kubernetes (manifests only — not cluster-tested)
-- `kubectl kustomize k8s/` renders all 19 resources cleanly ✅
-- No live cluster available for `kubectl apply` test
-- **Fix before deploy:**
-  1. Fill real passwords in `k8s/postgres/secret.yaml`
-  2. Fill real API keys in `k8s/api/secret.yaml`
-  3. Build + push images: `docker build -t chatbot/api:latest -f services/api/Dockerfile .` etc.
-  4. `kubectl apply -k k8s/`
-  5. Ingresss requires nginx-ingress-controller installed on cluster
+## Kubernetes — VERIFIED ON KIND ✅
+- Kind cluster `chatbot` created, all 4 images built + loaded
+- `kubectl apply -k k8s/` — all 19 resources created
+- All 7 pods `1/1 Running`: postgres, redis, presidio, api, ingestion×2, frontend ✅
+- In-cluster health: `curl http://api:8000/health` → `{"status":"ok","db":true,"redis":true}` ✅
+- Fix applied: `startupProbe` added to API deployment (migrations need >30s, liveness was killing pod)
+- Ingress not tested (requires nginx-ingress-controller on cluster)
 
 ---
 

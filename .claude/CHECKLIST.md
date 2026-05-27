@@ -134,6 +134,9 @@
 - [x] `k8s/frontend/ingress.yaml` — nginx, SSE proxy-buffering off, routes /sessions + /dashboard → api
 - [x] `k8s/kustomization.yaml` — 19 resources, all in chatbot namespace
 - [x] Validated: `kubectl kustomize k8s/` → all 19 resources render cleanly ✅
+- [x] Live cluster tested on Kind: all 7 pods `1/1 Running` ✅
+- [x] In-cluster health verified: `curl http://api:8000/health` → `{"status":"ok","db":true,"redis":true}` ✅
+- [x] Fix: added `startupProbe` (120×5s window) so liveness/readiness don't fire during `alembic upgrade head`
 
 ---
 

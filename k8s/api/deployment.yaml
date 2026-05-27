@@ -51,19 +51,26 @@ spec:
                 secretKeyRef:
                   name: llm-api-keys
                   key: GOOGLE_API_KEY
+          # startupProbe gates liveness/readiness until migrations finish
+          # 120 attempts × 5s = 10 min window for alembic upgrade head
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            failureThreshold: 120
+            periodSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 10
             periodSeconds: 5
-            failureThreshold: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
           resources:
             requests:
               cpu: 250m
