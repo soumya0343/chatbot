@@ -85,7 +85,8 @@ BaseProvider (ABC)
 ├── GeminiProvider      — google-genai streaming
 │                         (maps "assistant" role → "model",
 │                          injects system prompt into first user message)
-└── SarvamProvider      — OpenAI-compatible (openai-sdk, base_url override)
+├── SarvamProvider      — OpenAI-compatible (openai-sdk, base_url override)
+└── GroqProvider        — OpenAI-compatible (openai-sdk, base_url override)
 ```
 
 All three providers implement the same interface: `stream()` yields `(StreamChunk, ProviderMeta)` tuples. The SDK never knows which provider it's talking to beyond the initial registry lookup.
