@@ -72,24 +72,42 @@ export function streamChat(
   url.searchParams.set("model", model);
 
   const es = new EventSource(url.toString());
+  let finished = false;
 
-  signal.addEventListener("abort", () => {
+  const finish = (cb: () => void) => {
+    if (finished) return;
+    finished = true;
     es.close();
-    onDone();
-  });
+    cb();
+  };
 
-  es.addEventListener("chunk", (e) => onChunk(e.data));
-  es.addEventListener("done", () => {
-    es.close();
-    onDone();
-  });
-  es.addEventListener("error", (e) => {
-    const msg = (e as MessageEvent).data ?? "Stream error";
-    es.close();
-    onError(msg);
-  });
+  signal.addEventListener("abort", () => finish(onDone));
+
+  // The api emits default ("message") SSE events carrying a JSON payload whose
+  // `type` field is chunk | done | error (plus a literal "[DONE]" sentinel).
+  es.onmessage = (e) => {
+    if (e.data === "[DONE]") {
+      finish(onDone);
+      return;
+    }
+    let msg: { type?: string; text?: string; error?: string };
+    try {
+      msg = JSON.parse(e.data);
+    } catch {
+      return;
+    }
+    if (msg.type === "chunk") {
+      onChunk(msg.text ?? "");
+    } else if (msg.type === "done") {
+      finish(onDone);
+    } else if (msg.type === "error") {
+      finish(() => onError(msg.error ?? "Stream error"));
+    }
+  };
+
+  // Native connection error (network/cold start). If the stream already
+  // finished cleanly this won't double-fire thanks to the `finished` guard.
   es.onerror = () => {
-    es.close();
-    onDone();
+    finish(() => onError("Connection lost"));
   };
 }

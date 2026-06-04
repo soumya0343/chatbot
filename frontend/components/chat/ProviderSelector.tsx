@@ -23,7 +23,7 @@ const PROVIDERS: Record<string, { label: string; models: string[] }> = {
   },
   sarvam: {
     label: "Sarvam",
-    models: ["sarvam-m"],
+    models: ["sarvam-105b", "sarvam-30b"],
   },
   groq: {
     label: "Groq",
