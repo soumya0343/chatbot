@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from llm_sdk import ChatMessage, TrackedClient
 
+from ..config import settings
 from ..database import AsyncSessionLocal
 from ..dependencies import get_presidio_client, get_redis
 from ..models.message import Message
@@ -27,6 +28,9 @@ CONTEXT_WINDOW = 20  # max messages sent as history to LLM
 
 async def _redact(presidio_client, text: str) -> str:
     """Call Presidio sidecar. Falls back to original text on any error."""
+    # Skip entirely when disabled (avoids a per-request timeout when no sidecar).
+    if not settings.presidio_enabled:
+        return text
     try:
         response = await presidio_client.post(
             "/analyze_and_anonymize",

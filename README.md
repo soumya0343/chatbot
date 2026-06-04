@@ -109,6 +109,32 @@ builds all four images and pushes them to `ghcr.io/<owner>/chatbot-*` (tagged by
 `latest` on `main`). To deploy *from* ghcr (e.g. a cloud cluster), use the
 [`deploy/ghcr`](deploy/ghcr/kustomization.yaml) overlay.
 
+## Deploy free on Render (Supabase + Upstash)
+
+Hosts the full app on Render's free tier with no paid worker. The api runs the Redis-Streams
+ingestion consumer **in-process** (`ENABLE_INLINE_INGESTION=true`); Postgres lives on Supabase and
+Redis on Upstash (both permanent free). Presidio is dropped (`PRESIDIO_ENABLED=false`).
+
+**1. Postgres — [Supabase](https://supabase.com) (free):** create a project, grab the connection
+string, and set:
+- `SYNC_DATABASE_URL` = `postgresql://postgres:<pwd>@<host>:5432/postgres?sslmode=require` (migrations)
+- `DATABASE_URL` = `postgresql+asyncpg://postgres:<pwd>@<host>:5432/postgres?ssl=true` (app)
+
+**2. Redis — [Upstash](https://upstash.com) (free):** create a Redis database, copy the TLS URL:
+- `REDIS_URL` = `rediss://default:<pwd>@<host>:6379`
+
+**3. Render:** push this repo to GitHub → Render Dashboard → **New → Blueprint** → select the repo.
+[`render.yaml`](render.yaml) provisions two free web services (`chatbot-api`, `chatbot-frontend`).
+Fill the prompted secrets: the three data-layer URLs above + at least one LLM key
+(`GOOGLE_API_KEY` / `GROQ_API_KEY` / …).
+
+**4. Wire the frontend → api:** after the api deploys, set `chatbot-frontend`'s `NEXT_PUBLIC_API_URL`
+to the api's public URL (e.g. `https://chatbot-api.onrender.com`) and redeploy the frontend (it's
+baked at build time). Open the frontend URL.
+
+> Free services sleep after ~15 min idle (cold start on next request). The api runs Alembic
+> migrations against Supabase on first boot. Buffered events drain via XAUTOCLAIM when the api wakes.
+
 ## End-to-End Verification
 
 ```bash

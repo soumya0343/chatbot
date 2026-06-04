@@ -17,6 +17,6 @@ COPY services/ingestion /workspace/services/ingestion
 
 WORKDIR /workspace/services/ingestion
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "ingestion_app.main:app", "--host", "0.0.0.0", "--port", "8001"]
 
 EXPOSE 8001

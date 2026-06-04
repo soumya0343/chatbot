@@ -2,6 +2,8 @@ import logging
 
 import httpx
 
+from .config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -11,6 +13,10 @@ class PresidioClient:
 
     async def redact(self, text: str | None) -> str | None:
         """Redact PII from text. Fails open — returns original on any error."""
+        # Skip entirely when disabled (e.g. free hosted deploy without Presidio)
+        # to avoid a per-message timeout against an unreachable sidecar.
+        if not settings.presidio_enabled:
+            return text
         if not text or not text.strip():
             return text
         try:

@@ -1,0 +1,66 @@
+# Render Blueprint — free-tier deploy of the chatbot platform.
+#
+# Topology (completely free):
+#   - chatbot-api      : FastAPI + SSE, runs the ingestion consumer IN-PROCESS
+#                        (ENABLE_INLINE_INGESTION=true) so no paid worker is needed.
+#   - chatbot-frontend : Next.js standalone server.
+#   - Postgres         : external, Supabase free (permanent).   -> DATABASE_URL / SYNC_DATABASE_URL
+#   - Redis            : external, Upstash free (permanent).     -> REDIS_URL
+#   - Presidio (PII)   : dropped (PRESIDIO_ENABLED=false) — needs ~2GB RAM, not free.
+#
+# Free web services sleep after ~15 min idle; the frontend wakes the api on use,
+# and the in-process consumer drains any backlog via Redis Streams XAUTOCLAIM.
+#
+# Deploy: push this repo to GitHub, then Render Dashboard → New → Blueprint →
+# pick the repo. Fill the `sync: false` secrets when prompted (see README).
+
+services:
+  - type: web
+    name: chatbot-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8000"           # api CMD binds uvicorn on 8000
+      - key: ENVIRONMENT
+        value: production
+      - key: ENABLE_INLINE_INGESTION
+        value: "true"           # run the consumer in this process (no worker dyno)
+      - key: PRESIDIO_ENABLED
+        value: "false"          # no Presidio sidecar on free tier
+      # --- data layer (fill when prompted) ---
+      - key: DATABASE_URL
+        sync: false             # Supabase: postgresql+asyncpg://...:5432/postgres?ssl=true
+      - key: SYNC_DATABASE_URL
+        sync: false             # Supabase: postgresql://...:5432/postgres?sslmode=require
+      - key: REDIS_URL
+        sync: false             # Upstash: rediss://default:<pwd>@<host>:6379
+      # --- LLM provider keys (fill at least one) ---
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SARVAM_API_KEY
+        sync: false
+
+  - type: web
+    name: chatbot-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: PORT
+        value: "3000"
+      # Baked into the Next.js bundle at build time (Dockerfile ARG NEXT_PUBLIC_API_URL).
+      # Set to the api service's public URL after first deploy, e.g.
+      #   https://chatbot-api.onrender.com
+      - key: NEXT_PUBLIC_API_URL
+        sync: false

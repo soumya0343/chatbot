@@ -13,6 +13,12 @@ RUN pip install --no-cache-dir -e /workspace/packages/llm-sdk
 COPY services/api/pyproject.toml /workspace/services/api/pyproject.toml
 RUN pip install --no-cache-dir -e /workspace/services/api
 
+# Install ingestion package too, so the api can optionally run the consumer
+# in-process (ENABLE_INLINE_INGESTION=true) without a separate worker.
+COPY services/ingestion/pyproject.toml /workspace/services/ingestion/pyproject.toml
+RUN pip install --no-cache-dir -e /workspace/services/ingestion
+
+COPY services/ingestion /workspace/services/ingestion
 COPY services/api /workspace/services/api
 
 WORKDIR /workspace/services/api

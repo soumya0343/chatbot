@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     redis_stream_key: str = "llm-inference-logs"
     redis_consumer_group: str = "ingestion-workers"
     presidio_url: str = "http://localhost:8080"
+    presidio_enabled: bool = True
     batch_size: int = 50
     batch_timeout_ms: int = 1000
     environment: str = "production"

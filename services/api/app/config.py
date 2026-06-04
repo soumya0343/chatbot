@@ -8,6 +8,11 @@ class Settings(BaseSettings):
     sync_database_url: str = "postgresql://chatbot:chatbot@localhost:5432/chatbot"
     redis_url: str = "redis://localhost:6379"
     presidio_url: str = "http://localhost:8080"
+    presidio_enabled: bool = True
+
+    # When true, the api process also runs the Redis-Streams ingestion consumer
+    # in-process (no separate worker). Used for single-service hosted deploys.
+    enable_inline_ingestion: bool = False
 
     anthropic_api_key: str = ""
     openai_api_key: str = ""
