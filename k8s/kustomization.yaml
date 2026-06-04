@@ -8,7 +8,6 @@ resources:
   - namespace.yaml
 
   # Postgres
-  - postgres/secret.yaml
   - postgres/pvc.yaml
   - postgres/service.yaml
   - postgres/statefulset.yaml
@@ -23,7 +22,6 @@ resources:
   - presidio/service.yaml
 
   # API
-  - api/secret.yaml
   - api/deployment.yaml
   - api/service.yaml
   - api/hpa.yaml
@@ -35,6 +33,20 @@ resources:
   - frontend/deployment.yaml
   - frontend/service.yaml
   - frontend/ingress.yaml
+
+# Secrets are generated from gitignored env files (k8s/secrets/*.env), so real
+# values never land in version control. disableNameSuffixHash keeps the names
+# stable (postgres-secret, llm-api-keys) since deployments reference them by name.
+secretGenerator:
+  - name: postgres-secret
+    envs:
+      - secrets/postgres.env
+  - name: llm-api-keys
+    envs:
+      - secrets/llm-api-keys.env
+
+generatorOptions:
+  disableNameSuffixHash: true
 
 labels:
   - pairs:

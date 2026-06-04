@@ -1,0 +1,37 @@
+# Overlay that pulls images from ghcr.io instead of using kind-loaded local images.
+# Use for cloud clusters, or for kind pulling published images.
+#
+# Lives outside k8s/ because a kustomize overlay cannot reside inside the base
+# directory it references.
+#
+#   # set OWNER to your GitHub namespace, TAG to a published tag (e.g. sha-abc1234)
+#   cd deploy/ghcr
+#   kustomize edit set image \
+#     chatbot/api=ghcr.io/OWNER/chatbot-api:TAG \
+#     chatbot/ingestion=ghcr.io/OWNER/chatbot-ingestion:TAG \
+#     chatbot/presidio=ghcr.io/OWNER/chatbot-presidio:TAG \
+#     chatbot/frontend=ghcr.io/OWNER/chatbot-frontend:TAG
+#   kubectl apply -k .
+#
+# Note: ghcr packages are private by default — make them public or add an
+# imagePullSecret to the service accounts for the pull to succeed.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../k8s
+
+# Default mapping (edit OWNER/tags via `kustomize edit set image` or here).
+images:
+  - name: chatbot/api
+    newName: ghcr.io/OWNER/chatbot-api
+    newTag: latest
+  - name: chatbot/ingestion
+    newName: ghcr.io/OWNER/chatbot-ingestion
+    newTag: latest
+  - name: chatbot/presidio
+    newName: ghcr.io/OWNER/chatbot-presidio
+    newTag: latest
+  - name: chatbot/frontend
+    newName: ghcr.io/OWNER/chatbot-frontend
+    newTag: latest

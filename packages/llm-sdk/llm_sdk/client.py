@@ -12,6 +12,7 @@ from .providers.anthropic import AnthropicProvider
 from .providers.base import BaseProvider
 from .providers.gemini import GeminiProvider
 from .providers.openai import OpenAIProvider
+from .providers.sarvam import SarvamProvider
 from .streaming import StreamingTracker
 
 __version__ = "0.1.0"
@@ -22,9 +23,10 @@ PROVIDER_REGISTRY: dict[str, type[BaseProvider]] = {
     "anthropic": AnthropicProvider,
     "openai": OpenAIProvider,
     "gemini": GeminiProvider,
+    "sarvam": SarvamProvider,
 }
 
-ProviderName = Literal["anthropic", "openai", "gemini"]
+ProviderName = Literal["anthropic", "openai", "gemini", "sarvam"]
 
 
 class TrackedClient:

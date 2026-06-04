@@ -72,7 +72,7 @@ async def stream_chat(
     session_id: str,
     request: Request,
     user_message: str = Query(..., min_length=1),
-    provider: Literal["anthropic", "openai", "gemini"] = Query(...),
+    provider: Literal["anthropic", "openai", "gemini", "sarvam"] = Query(...),
     model: str = Query(...),
     redis=Depends(get_redis),
     presidio_client=Depends(get_presidio_client),

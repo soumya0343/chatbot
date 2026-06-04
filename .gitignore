@@ -47,11 +47,10 @@ logs/
 *.pem
 *.key
 
-# K8s secrets — commit templates only, fill values locally before deploy
-# (templates with empty stringData are safe; filled copies must not be pushed)
-# Uncomment to ignore entirely if you prefer:
-# k8s/postgres/secret.yaml
-# k8s/api/secret.yaml
+# K8s secrets — kustomize secretGenerator reads these gitignored env files.
+# Commit only the *.env.example templates; real *.env must never be pushed.
+k8s/secrets/*.env
+!k8s/secrets/*.env.example
 
 # Python build artifacts
 *.so

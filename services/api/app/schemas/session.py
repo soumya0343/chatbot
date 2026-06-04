@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 
 class SessionCreate(BaseModel):
-    provider: Literal["anthropic", "openai", "gemini"]
+    provider: Literal["anthropic", "openai", "gemini", "sarvam"]
     model: str
     title: str | None = None
 
