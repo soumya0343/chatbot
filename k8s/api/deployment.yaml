@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: llm-api-keys
                   key: SARVAM_API_KEY
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: llm-api-keys
+                  key: GROQ_API_KEY
           # startupProbe gates liveness/readiness until migrations finish
           # 120 attempts × 5s = 10 min window for alembic upgrade head
           startupProbe:

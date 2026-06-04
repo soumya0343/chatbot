@@ -25,6 +25,10 @@ const PROVIDERS: Record<string, { label: string; models: string[] }> = {
     label: "Sarvam",
     models: ["sarvam-m"],
   },
+  groq: {
+    label: "Groq",
+    models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-20b"],
+  },
 };
 
 interface Props {

@@ -4,7 +4,7 @@ Production-grade multi-provider LLM chatbot with full inference observability: s
 
 ## Features
 
-- **Multi-provider** — Gemini, OpenAI, Anthropic, Sarvam switchable per conversation
+- **Multi-provider** — Gemini, OpenAI, Anthropic, Sarvam, Groq switchable per conversation
 - **Streaming** — true SSE streaming with TTFT measurement and mid-stream cancel
 - **Event-based ingestion** — Redis Streams decouple the hot path from logging
 - **PII redaction** — two-stage: inline before DB write (user messages) + async in ingestion (previews)
@@ -157,7 +157,7 @@ chatbot/
 ├── packages/llm-sdk/                # internal Python package
 │   └── llm_sdk/
 │       ├── client.py                # TrackedClient — orchestrates stream + emit
-│       ├── providers/               # base.py, anthropic.py, openai.py, gemini.py, sarvam.py
+│       ├── providers/               # base.py, anthropic.py, openai.py, gemini.py, sarvam.py, groq.py
 │       ├── models.py                # InferenceEvent (Pydantic v2)
 │       ├── emitter.py               # Redis XADD, never raises
 │       ├── streaming.py             # StreamingTracker — TTFT measurement

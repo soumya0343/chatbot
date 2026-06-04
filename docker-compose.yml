@@ -55,6 +55,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
       PRESIDIO_URL: http://presidio:8080
       ENVIRONMENT: ${ENVIRONMENT:-production}
     depends_on:
