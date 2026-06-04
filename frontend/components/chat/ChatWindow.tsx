@@ -19,8 +19,8 @@ interface Props {
 export function ChatWindow({
   sessionId,
   initialMessages,
-  defaultProvider = "gemini",
-  defaultModel = "gemini-2.0-flash",
+  defaultProvider = "groq",
+  defaultModel = "llama-3.3-70b-versatile",
 }: Props) {
   const [provider, setProvider] = useState(defaultProvider);
   const [model, setModel] = useState(defaultModel);

@@ -20,8 +20,8 @@ import { Trash2, MessageSquarePlus } from "lucide-react";
 export default function ConversationsPage() {
   const router = useRouter();
   const { sessions, loading, error, reload, deleteSession } = useConversations();
-  const [provider, setProvider] = useState("gemini");
-  const [model, setModel] = useState("gemini-1.5-flash");
+  const [provider, setProvider] = useState("groq");
+  const [model, setModel] = useState("llama-3.3-70b-versatile");
   const [creating, setCreating] = useState(false);
 
   async function createSession() {
