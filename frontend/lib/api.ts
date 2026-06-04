@@ -56,6 +56,28 @@ export const api = {
   },
 };
 
+/** Turn a raw provider/SSE error into a short, human-readable message. */
+export function humanizeError(raw: string): string {
+  if (!raw) return "Something went wrong. Please try again.";
+  const lower = raw.toLowerCase();
+  if (lower.includes("quota") || lower.includes("429") || lower.includes("rate limit")) {
+    return "Rate limit or quota exceeded for this model. Try again shortly, or switch provider/model.";
+  }
+  if (
+    lower.includes("invalid_api_key") ||
+    lower.includes("api key") ||
+    lower.includes("401") ||
+    lower.includes("unauthorized")
+  ) {
+    return "This provider's API key is missing or invalid.";
+  }
+  // Pull the embedded "message": "..." if the error is a JSON-ish blob.
+  const m = raw.match(/['"]message['"]\s*:\s*["']([^"']+)["']/);
+  let msg = m ? m[1] : raw;
+  if (msg.length > 240) msg = msg.slice(0, 240) + "…";
+  return msg;
+}
+
 export function streamChat(
   sessionId: string,
   userMessage: string,
@@ -101,7 +123,7 @@ export function streamChat(
     } else if (msg.type === "done") {
       finish(onDone);
     } else if (msg.type === "error") {
-      finish(() => onError(msg.error ?? "Stream error"));
+      finish(() => onError(humanizeError(msg.error ?? "")));
     }
   };
 
