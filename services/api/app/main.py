@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
     await app.state.presidio_client.aclose()
 
 
-app = FastAPI(title="Chatbot API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="InferLog API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

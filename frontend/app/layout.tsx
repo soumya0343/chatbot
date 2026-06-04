@@ -15,8 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "LLM Chatbot",
-  description: "Multi-provider LLM chatbot with inference logging",
+  title: "InferLog",
+  description: "InferLog — multi-provider LLM inference observability platform",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <div className="flex h-screen flex-col">
           <header className="flex items-center gap-6 border-b px-6 py-3 shrink-0">
-            <span className="font-semibold text-sm">LLM Chatbot</span>
+            <span className="font-semibold text-sm">InferLog</span>
             <nav className="flex gap-4 text-sm text-muted-foreground">
               <Link href="/conversations" className="hover:text-foreground transition-colors">
                 Conversations

@@ -1,4 +1,4 @@
-# Architecture Notes
+# InferLog — Architecture Notes
 
 ## System Overview
 

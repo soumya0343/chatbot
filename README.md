@@ -1,4 +1,4 @@
-# LLM Inference Logging & Chatbot
+# InferLog — LLM Inference Observability Platform
 
 Production-grade multi-provider LLM chatbot with full inference observability: streaming responses, event-based log ingestion, PII redaction, and real-time analytics dashboards.
 
