@@ -2,9 +2,11 @@
 
 Production-grade multi-provider LLM chatbot with full inference observability: streaming responses, event-based log ingestion, PII redaction, and real-time analytics dashboards.
 
+**Live demo:** https://chatbot-frontend-7zw7.onrender.com (free tier — first load may cold-start ~50s). Use **Groq** (`llama-3.3-70b-versatile`) — it's the default and has free quota.
+
 ## Features
 
-- **Multi-provider** — Gemini, OpenAI, Anthropic, Sarvam, Groq switchable per conversation
+- **Multi-provider** — Groq, Gemini, OpenAI, Anthropic, Sarvam switchable per conversation (all via a pluggable `BaseProvider`; the OpenAI-compatible ones — Groq, Sarvam — reuse the openai SDK with a `base_url` override)
 - **Streaming** — true SSE streaming with TTFT measurement and mid-stream cancel
 - **Event-based ingestion** — Redis Streams decouple the hot path from logging
 - **PII redaction** — two-stage: inline before DB write (user messages) + async in ingestion (previews)
@@ -141,11 +143,11 @@ baked at build time). Open the frontend URL.
 # Create session
 SESSION_ID=$(curl -s -X POST http://localhost:8000/sessions \
   -H "Content-Type: application/json" \
-  -d '{"provider":"gemini","model":"gemini-2.5-flash"}' \
+  -d '{"provider":"groq","model":"llama-3.3-70b-versatile"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
 # Stream a message
-curl -N "http://localhost:8000/sessions/${SESSION_ID}/stream?user_message=Hello&provider=gemini&model=gemini-2.5-flash"
+curl -N "http://localhost:8000/sessions/${SESSION_ID}/stream?user_message=Hello&provider=groq&model=llama-3.3-70b-versatile"
 
 # Verify inference log written
 docker compose exec postgres psql -U chatbot -d chatbot \
