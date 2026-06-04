@@ -15,10 +15,12 @@ RUN pip install --no-cache-dir -e /workspace/services/api
 
 # Install ingestion package too, so the api can optionally run the consumer
 # in-process (ENABLE_INLINE_INGESTION=true) without a separate worker.
-COPY services/ingestion/pyproject.toml /workspace/services/ingestion/pyproject.toml
+# Copy the full source BEFORE installing so setuptools discovers the
+# ingestion_app package (an editable install with only pyproject present maps
+# nothing, causing ModuleNotFoundError at runtime).
+COPY services/ingestion /workspace/services/ingestion
 RUN pip install --no-cache-dir -e /workspace/services/ingestion
 
-COPY services/ingestion /workspace/services/ingestion
 COPY services/api /workspace/services/api
 
 WORKDIR /workspace/services/api

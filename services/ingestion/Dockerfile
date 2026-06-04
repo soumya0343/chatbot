@@ -9,11 +9,11 @@ RUN pip install --upgrade pip setuptools wheel
 COPY packages/llm-sdk /workspace/packages/llm-sdk
 RUN pip install --no-cache-dir -e /workspace/packages/llm-sdk
 
-# Install ingestion service
-COPY services/ingestion/pyproject.toml /workspace/services/ingestion/pyproject.toml
-RUN pip install --no-cache-dir -e /workspace/services/ingestion
-
+# Install ingestion service. Copy full source BEFORE installing so setuptools
+# discovers the ingestion_app package (editable install with only pyproject
+# present maps nothing → ModuleNotFoundError at runtime).
 COPY services/ingestion /workspace/services/ingestion
+RUN pip install --no-cache-dir -e /workspace/services/ingestion
 
 WORKDIR /workspace/services/ingestion
 
